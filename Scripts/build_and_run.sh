@@ -18,9 +18,19 @@ build_app() {
   xcodebuild -project "$PROJECT_PATH" -scheme "$APP_NAME" -configuration Debug -derivedDataPath "$DERIVED_DATA_DIR" build >/tmp/NeoBar-build.log 2>&1
 }
 
+SIGN_IDENTITY="${NEOBAR_SIGN_IDENTITY:-NeoBar Development}"
+
 sign_app() {
-  # Xcode already signs the Debug build ad hoc (CODE_SIGN_IDENTITY = "-"); nothing to add.
-  :
+  # Xcode signs the Debug build ad hoc (CODE_SIGN_IDENTITY = "-"), whose designated requirement is just
+  # the cdhash. Every rebuild changes it, so the Accessibility switch stays on in System Settings while
+  # AXIsProcessTrusted() returns false for the new binary. Re-signing with a stable (self-signed is fine)
+  # certificate pins the requirement to that certificate instead, so the permission survives rebuilds.
+  # No -v: a self-signed certificate is listed as untrusted but still signs.
+  if security find-identity -p codesigning 2>/dev/null | grep -qF "\"$SIGN_IDENTITY\""; then
+    codesign --force --sign "$SIGN_IDENTITY" --preserve-metadata=identifier,entitlements "$APP_BUNDLE"
+  else
+    echo "note: no \"$SIGN_IDENTITY\" signing identity; keeping the ad hoc signature, so Accessibility must be re-granted after each rebuild" >&2
+  fi
 }
 
 run_cli() {
@@ -67,6 +77,7 @@ case "$MODE" in
     ;;
   --debug|debug)
     build_app
+    sign_app
     lldb -- "$APP_EXECUTABLE"
     ;;
   --logs|logs)
