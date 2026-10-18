@@ -1,0 +1,497 @@
+import AppKit
+import SwiftUI
+
+struct ContentView: View {
+    @Environment(\.displayScale) private var displayScale
+    @Environment(\.colorScheme) private var colorScheme
+    let snapshot: DockSnapshot
+    let hasRequiredPermissions: Bool
+    let observationStatusText: String
+    let feedbackEntriesByWindowID: [String: IntentFeedbackState.Entry]
+    let onToggle: (String) -> Void
+    let onActivate: (String) -> Void
+    let onMinimize: (String) -> Void
+    let onHide: (String) -> Void
+    let onClose: (String) -> Void
+
+    private var stripItems: [StripItem] {
+        StripItem.items(from: snapshot)
+    }
+
+    private var visibleStatusCount: Int {
+        stripItems.filter { $0.status != WindowStatus.disappeared.rawValue }.count
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.09, green: 0.12, blue: 0.16),
+                    Color(red: 0.14, green: 0.17, blue: 0.20)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 20) {
+                Text("任务条调试台")
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+
+                Text("底部任务条现在由真实窗口观察链路驱动。飞书在窗口级信息不可靠时，会退回为一个稳定的应用级条目。")
+                    .foregroundStyle(.white.opacity(0.72))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 18) {
+                    summaryPill(label: "已跟踪", value: "\(stripItems.count)")
+                    summaryPill(label: "可见", value: "\(visibleStatusCount)")
+                    summaryPill(label: "权限", value: hasRequiredPermissions ? "辅助权限已就绪" : "仅窗口列表可用")
+                    summaryPill(label: "启动", value: observationStatusText)
+                }
+
+                if hasRequiredPermissions == false {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("尚未授予辅助功能权限。")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                        Text("任务条仍可通过系统窗口列表显示部分窗口，但在权限开启前，窗口标题、最小化状态和位置侧证据会不完整。")
+                            .foregroundStyle(.white.opacity(0.72))
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.yellow.opacity(0.16), in: RoundedRectangle(cornerRadius: 18))
+                }
+
+                Spacer(minLength: 0)
+
+                if stripItems.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("还没有跟踪到窗口")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                        Text("保持应用打开，然后切换或移动几个窗口。观察链路写入快照后，底部任务条会自动出现条目。")
+                            .foregroundStyle(.white.opacity(0.72))
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 180, alignment: .leading)
+                }
+
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("任务条")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.78))
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 14) {
+                            ForEach(stripItems, id: \.id) { item in
+                                taskStripChip(item)
+                            }
+                        }
+                    }
+                }
+                .padding(18)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(Color.black.opacity(0.24))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                        )
+                )
+            }
+            .padding(24)
+        }
+    }
+
+    private func summaryPill(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label.uppercased())
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.52))
+            Text(value)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.white.opacity(0.08), in: Capsule())
+    }
+
+    // Interruptible (2026-06-13): the debug console uses the same basis as the main taskbar -- no longer locks clicks / greys out / spins by pending;
+    // the feedback text row is kept (pending/success/failure are diagnostic information).
+    @ViewBuilder
+    private func taskStripChip(_ item: StripItem) -> some View {
+        let feedback = feedbackEntriesByWindowID[item.id]
+
+        Group {
+            if item.showsTitle {
+                expandedTaskStripChip(item, feedback: feedback)
+            } else {
+                compactTaskStripChip(item, feedback: feedback)
+            }
+        }
+        .help(localizedTitle(item))
+        .contextMenu {
+            taskStripContextMenu(item)
+        }
+        .animation(.easeInOut(duration: 0.18), value: item.showsTitle)
+    }
+
+    private func expandedTaskStripChip(
+        _ item: StripItem,
+        feedback: IntentFeedbackState.Entry?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                appIcon(for: item)
+                Text(localizedTitle(item))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+            }
+
+            HStack(spacing: 8) {
+                Text(localizedStatus(item.status))
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.78))
+                if item.isAppLevelFallback {
+                    Text("应用")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color(red: 0.17, green: 0.22, blue: 0.18))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(red: 0.77, green: 0.91, blue: 0.68), in: Capsule())
+                }
+            }
+
+            if let feedback {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(feedbackColor(feedback))
+                        .frame(width: 7, height: 7)
+                    Text(feedbackText(feedback))
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(feedbackColor(feedback))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(feedbackColor(feedback).opacity(0.14), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+
+            HStack(spacing: 8) {
+                actionButton(label: "激活") {
+                    onActivate(item.id)
+                }
+
+                if item.canHide {
+                    actionButton(label: "隐藏") {
+                        onHide(item.id)
+                    }
+                }
+
+                if item.canMinimize {
+                    actionButton(label: "最小化") {
+                        onMinimize(item.id)
+                    }
+                }
+
+                if item.canClose {
+                    actionButton(label: "关闭") {
+                        onClose(item.id)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .frame(width: 260, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.white.opacity(0.09))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                )
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .onTapGesture {
+            onToggle(item.id)
+        }
+    }
+
+    private func compactTaskStripChip(
+        _ item: StripItem,
+        feedback: IntentFeedbackState.Entry?
+    ) -> some View {
+        let borderColor = feedback.map { feedbackColor($0).opacity(0.36) } ?? Color.white.opacity(0.08)
+
+        return appIcon(for: item)
+            .padding(12)
+            .frame(width: 58, height: 58)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color.white.opacity(0.09))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(borderColor, lineWidth: 1)
+                    )
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .transition(.opacity.combined(with: .scale(scale: 0.92)))
+            .onTapGesture {
+                onToggle(item.id)
+            }
+    }
+
+    @ViewBuilder
+    private func taskStripContextMenu(_ item: StripItem) -> some View {
+        Button("激活") {
+            onActivate(item.id)
+        }
+
+        if item.canHide {
+            Button("隐藏") {
+                onHide(item.id)
+            }
+        }
+
+        if item.canMinimize {
+            Button("最小化") {
+                onMinimize(item.id)
+            }
+        }
+
+        if item.canClose {
+            Divider()
+            Button("关闭") {
+                onClose(item.id)
+            }
+        }
+    }
+
+    private func appIcon(for item: StripItem) -> some View {
+        ZStack(alignment: .bottomTrailing) {
+            Image(nsImage: AppIconResolver.icon(for: item.bundleIdentifier ?? item.appID, points: 28,
+                                                 displayScale: displayScale, colorScheme: colorScheme,
+                                                 allowsRendering: true))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
+
+            Circle()
+                .fill(statusColor(item.status))
+                .frame(width: 9, height: 9)
+                .overlay(
+                    Circle()
+                        .stroke(Color.black.opacity(0.46), lineWidth: 1)
+                )
+                .offset(x: 2, y: 2)
+        }
+        .frame(width: 32, height: 32)
+        .accessibilityLabel("\(localizedTitle(item)) 应用图标")
+    }
+
+    private func statusColor(_ status: String) -> Color {
+        switch status {
+        case WindowStatus.minimized.rawValue:
+            return Color(red: 0.95, green: 0.74, blue: 0.21)
+        case WindowStatus.hidden.rawValue:
+            return Color(red: 0.85, green: 0.48, blue: 0.24)
+        case WindowStatus.disappeared.rawValue:
+            return Color(red: 0.64, green: 0.66, blue: 0.70)
+        case WindowStatus.active.rawValue:
+            return Color(red: 0.35, green: 0.82, blue: 0.56)
+        default:
+            return Color(red: 0.43, green: 0.66, blue: 1.0)
+        }
+    }
+
+    private func actionButton(label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.white.opacity(0.12), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.white.opacity(0.82))
+    }
+
+    private func feedbackText(_ feedback: IntentFeedbackState.Entry) -> String {
+        switch feedback.phase {
+        case .pending:
+            switch feedback.action {
+            case .toggle:
+                return "正在尝试切换这个窗口"
+            case .activate:
+                return "正在尝试把这个窗口带到前台"
+            case .minimize:
+                return "正在尝试最小化这个窗口"
+            case .hide:
+                return "正在尝试隐藏这个应用"
+            case .close:
+                return "正在尝试关闭这个窗口"
+            case .quit:
+                return "正在尝试退出这个应用"
+            case .newWindow:
+                return "正在尝试新建窗口"
+            }
+        case .success:
+            switch feedback.action {
+            case .toggle:
+                return "这个窗口已切换"
+            case .activate:
+                return "这个窗口已带到前台"
+            case .minimize:
+                return "这个窗口已最小化"
+            case .hide:
+                return "这个应用已隐藏"
+            case .close:
+                return "这个窗口已关闭"
+            case .quit:
+                return "这个应用已退出"
+            case .newWindow:
+                return "已请求新建窗口"
+            }
+        case .failure:
+            switch feedback.action {
+            case .toggle:
+                return "没能切换这个窗口"
+            case .activate:
+                return "没能把这个窗口带到前台"
+            case .minimize:
+                return "没能最小化这个窗口"
+            case .hide:
+                return "没能隐藏这个应用"
+            case .close:
+                return "没能关闭这个窗口"
+            case .quit:
+                return "没能退出这个应用"
+            case .newWindow:
+                return "没能新建窗口"
+            }
+        }
+    }
+
+    private func localizedTitle(_ item: StripItem) -> String {
+        switch item.title {
+        case "NeoBar":
+            return "任务条调试台"
+        default:
+            return item.title
+        }
+    }
+
+    private func localizedStatus(_ status: String) -> String {
+        switch status {
+        case WindowStatus.active.rawValue:
+            return "活跃"
+        case WindowStatus.inactive.rawValue:
+            return "未激活"
+        case WindowStatus.minimized.rawValue:
+            return "已最小化"
+        case WindowStatus.hidden.rawValue:
+            return "已隐藏"
+        case WindowStatus.closedPending.rawValue:
+            return "关闭确认中"
+        case WindowStatus.disappeared.rawValue:
+            return "暂时消失"
+        default:
+            return status
+        }
+    }
+
+    private func feedbackColor(_ feedback: IntentFeedbackState.Entry) -> Color {
+        switch feedback.phase {
+        case .pending:
+            return Color(red: 0.95, green: 0.74, blue: 0.21)
+        case .success:
+            return Color(red: 0.35, green: 0.82, blue: 0.56)
+        case .failure:
+            return Color(red: 0.95, green: 0.43, blue: 0.40)
+        }
+    }
+}
+
+struct DebugConsoleView: View {
+    @EnvironmentObject var runtime: AppRuntime
+    @EnvironmentObject var debugState: DebugRuntimeState
+
+    var body: some View {
+        ContentView(
+            snapshot: runtime.snapshot,
+            hasRequiredPermissions: runtime.hasRequiredPermissions,
+            observationStatusText: debugState.observationStatusText,
+            feedbackEntriesByWindowID: debugState.feedbackEntriesByWindowID,
+            onToggle: runtime.toggle(windowID:),
+            onActivate: runtime.activate(windowID:),
+            onMinimize: runtime.minimize(windowID:),
+            onHide: runtime.hide(windowID:),
+            onClose: runtime.close(windowID:)
+        )
+    }
+}
+
+enum AppIconResolver {
+    /// **A plain dictionary, not `NSCache`.** 2026-09-04 main-thread sampling (120s): the `NSCache` version was measured to be constantly invalidating --
+    /// `iconForFile:` took about 1 second of main thread (LaunchServices binding + IconServices resolution, about 1ms each), and every
+    /// card's body looks it up on every recompute: opening the drawer recomputes all cards, a drag lift/drop recomputes the whole strip a dozen times, and the once-per-second snapshot heartbeat
+    /// recomputes both displays' strips -- all paying this cost. It is the largest quantifiable single item in the "panel animation frame-rate feel" card.
+    /// Entry count = number of bundle ids seen (dozens), which always fits; called on the main thread only (SwiftUI body / bitmap snapshot).
+    private static var cache: [String: NSImage] = [:]
+    @MainActor private static let bitmaps = IconBitmapCache()
+
+    /// The icon as a chip draws it: rendered at exactly `points × displayScale` pixels, in the
+    /// appearance of `colorScheme` (an icon may carry a dark rendition). `allowsRendering: false`
+    /// during a height drag — see `IconBitmapCache`. Why not the multi-rep image: `IconBitmapRenderer`.
+    @MainActor
+    static func icon(for bundleIdentifier: String, points: CGFloat, displayScale: CGFloat,
+                     colorScheme: ColorScheme, allowsRendering: Bool) -> NSImage {
+        bitmaps.image(name: bundleIdentifier, points: points, displayScale: displayScale,
+                      appearance: NSAppearance(named: colorScheme == .dark ? .darkAqua : .aqua),
+                      allowsRendering: allowsRendering) { icon(for: bundleIdentifier) }
+    }
+
+    /// The system icon with its small plated renditions removed — the source every rendered size
+    /// comes from; chips draw the sized variant above.
+    static func icon(for bundleIdentifier: String) -> NSImage {
+        if let cached = cache[bundleIdentifier] {
+            return cached
+        }
+
+        let shared: NSImage
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) {
+            shared = NSWorkspace.shared.icon(forFile: appURL.path)
+        } else {
+            shared = NSWorkspace.shared.icon(for: .applicationBundle)
+        }
+
+        // copy() first: `icon(forFile:)` hands out a shared cached NSImage.
+        let icon = (shared.copy() as? NSImage) ?? shared
+        removePlatedRepresentations(from: icon)
+        icon.size = NSSize(width: 32, height: 32)
+        if cache.count >= 512 { cache.removeAll() }   // only guards against unbounded growth; normally never reached in a lifetime
+        cache[bundleIdentifier] = icon
+        return icon
+    }
+
+    /// Drops the small @1x representations (16 / 18 / 24 / 32pt at 1x). For an app icon that does not
+    /// follow the system icon shape, IconServices draws exactly those on a grey rounded plate while
+    /// the @2x and ≥128pt ones stay clean, and an 18px draw (the drawer capsule preview on Retina, any
+    /// small icon on a 1x display) picks them by exact pixel match — a white ring around the icon.
+    /// The @2x representations cover the same pixel sizes, so nothing is lost.
+    private static func removePlatedRepresentations(from icon: NSImage) {
+        let plated = icon.representations.filter {
+            $0.size.width < 128 && CGFloat($0.pixelsWide) <= $0.size.width
+        }
+        // Never strip an image down to nothing.
+        guard plated.count < icon.representations.count else { return }
+        plated.forEach(icon.removeRepresentation)
+    }
+}

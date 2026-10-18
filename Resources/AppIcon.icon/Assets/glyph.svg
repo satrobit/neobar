@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <g fill="#000000" fill-rule="evenodd">
+    <!-- a window -->
+    <path d="M240 232h544v360H240z M280 300h464v252H280z"/>
+    <!-- the taskbar with three app slots -->
+    <path d="M152 660h720v152H152z M208 700h72v72h-72z M320 700h72v72h-72z M432 700h72v72h-72z"/>
+  </g>
+</svg>

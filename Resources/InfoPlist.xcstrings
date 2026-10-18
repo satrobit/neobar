@@ -1,0 +1,312 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "应用显示名。英文环境只用 NeoBar，不带中文品牌名。",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "应用短名，与 CFBundleDisplayName 保持一致。",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar"
+          }
+        }
+      }
+    },
+    "NSAppleEventsUsageDescription" : {
+      "comment" : "系统自动化授权用途：访达内容预览、废纸篓状态与清倒。",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar uses this to preview the folder shown in Finder, display whether the Trash is empty, and empty the Trash."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于读取当前访达窗口所在文件夹以显示快捷面板，以及显示废纸篓空满状态和清倒废纸篓。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar會使用這項權限來預覽Finder顯示的檔案夾、顯示垃圾桶是否為空，以及清空垃圾桶。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBarは、Finderで表示しているフォルダの内容をプレビューし、ゴミ箱が空かどうかを表示し、ゴミ箱を空にするためにこれを使用します。"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar verwendet dies, um den im Finder angezeigten Ordner in der Vorschau zu zeigen, anzuzeigen, ob der Papierkorb leer ist, und den Papierkorb zu entleeren."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar utilise cette autorisation pour prévisualiser le dossier affiché dans le Finder, indiquer si la corbeille est vide et vider la corbeille."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar usa este permiso para previsualizar la carpeta abierta en el Finder, mostrar si la papelera está vacía y vaciarla."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar usa este permiso para mostrar una vista previa de la carpeta abierta en el Finder, indicar si el basurero está vacío y vaciarlo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O NeoBar usa isto para pré-visualizar a pasta exibida no Finder, mostrar se o Lixo está vazio e esvaziar o Lixo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O NeoBar utiliza isto para pré-visualizar a pasta apresentada no Finder, indicar se o Lixo está vazio e esvaziar o Lixo."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar usa questa autorizzazione per mostrare l’anteprima della cartella visualizzata nel Finder, indicare se il Cestino è vuoto e svuotarlo."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar는 Finder에 표시된 폴더를 미리 보고, 휴지통이 비어 있는지 표시하고, 휴지통을 비우는 데 이 권한을 사용합니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar использует это разрешение, чтобы показывать содержимое папки, открытой в Finder, определять, пуста ли Корзина, и очищать ее."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar bunu, Finder’da gösterilen klasörü önizlemek, Çöp Sepeti’nin boş olup olmadığını göstermek ve Çöp Sepeti’ni boşaltmak için kullanır."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar इस अनुमति का उपयोग Finder में दिखाए गए फ़ोल्डर का प्रीव्यू दिखाने, यह दिखाने कि रद्दी ख़ाली है या नहीं, और रद्दी ख़ाली करने के लिए करता है।"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NeoBar sử dụng quyền này để xem trước thư mục đang hiển thị trong Finder, hiển thị Thùng rác có trống hay không và dọn sạch Thùng rác."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
