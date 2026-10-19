@@ -24,6 +24,12 @@ xcodebuild test -project NeoBar.xcodeproj -scheme NeoBar -destination 'platform=
 
 Debug builds are signed ad hoc. macOS may treat each rebuild as a new app and drop NeoBar's Accessibility permission. If the bar stops responding after a rebuild, remove NeoBar from System Settings → Privacy & Security → Accessibility and add it again.
 
+## Install from a DMG
+
+Every push to `main` builds a universal DMG. Download it from the **Build DMG** run on the repository's Actions tab, open it, and drag NeoBar to Applications. To build the same DMG locally, run `Scripts/package_dmg.sh`; it writes to `dist/`.
+
+The DMG is signed ad hoc and not notarized, so macOS blocks it the first time it opens. Allow it in System Settings → Privacy & Security → Open Anyway, or run `xattr -dr com.apple.quarantine /Applications/NeoBar.app`.
+
 ## Permissions
 
 - **Accessibility.** Required. NeoBar uses it to list, focus, minimize, and move windows.
